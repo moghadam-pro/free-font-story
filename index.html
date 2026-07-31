@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#df1760" />
+    <meta name="description" content="Create Persian and English typographic artwork and export it as SVG, PNG, or JPEG." />
+    <title>Free Font Story</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand-wrap">
+          <div class="brand-mark">F→P</div>
+          <div>
+            <div class="brand-title">Free Font Story <span class="beta">Beta</span></div>
+            <div class="brand-subtitle">Text to clean paths, locally in your browser</div>
+          </div>
+        </div>
+
+        <div class="top-actions">
+          <button class="icon-button" id="undoButton" title="Undo">↶</button>
+          <button class="icon-button" id="redoButton" title="Redo">↷</button>
+          <button class="secondary-button" id="frameButton">▣ Frame</button>
+          <button class="primary-button" id="exportButton">⇧ Export</button>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <aside class="left-rail" aria-label="Tools">
+          <button class="rail-button active" data-tool="text"><span>T</span><small>Text</small></button>
+          <button class="rail-button" data-tool="frame"><span>▣</span><small>Frame</small></button>
+          <button class="rail-button" data-tool="select"><span>⌁</span><small>Select</small></button>
+          <button class="rail-button" data-tool="background"><span>◫</span><small>Background</small></button>
+          <button class="rail-button" data-tool="layers"><span>◇</span><small>Layers</small></button>
+        </aside>
+
+        <section class="stage-column">
+          <div class="document-strip">
+            <div class="document-tab">Untitled 1 <button id="resetButton" title="Reset document">×</button></div>
+            <div class="frame-pill" id="framePill">Desktop · 1200 × 700</div>
+          </div>
+
+          <div class="canvas-viewport" id="canvasViewport">
+            <div class="canvas-stage" id="canvasStage">
+              <div class="artboard" id="artboard">
+                <div class="grid-layer"></div>
+                <div class="text-object selected" id="textObject" tabindex="0" aria-label="Editable text layer">
+                  <div class="selection-box">
+                    <span class="handle nw" data-handle="nw"></span>
+                    <span class="handle ne" data-handle="ne"></span>
+                    <span class="handle sw" data-handle="sw"></span>
+                    <span class="handle se" data-handle="se"></span>
+                    <span class="rotate-handle" data-handle="rotate">↻</span>
+                  </div>
+                  <div class="text-render" id="textRender" dir="rtl">متن خود را اینجا بنویسید</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="floating-toolbar" id="textToolbar">
+            <select id="fontFamily" aria-label="Font family">
+              <option value="Vazirmatn">Vazirmatn</option>
+              <option value="Arial">Arial</option>
+              <option value="Georgia">Georgia</option>
+              <option value="Tahoma">Tahoma</option>
+              <option value="system-ui">System UI</option>
+            </select>
+            <select id="fontWeight" aria-label="Font weight">
+              <option value="400">Regular</option>
+              <option value="500">Medium</option>
+              <option value="600">Semi Bold</option>
+              <option value="700" selected>Bold</option>
+              <option value="800">Extra Bold</option>
+              <option value="900">Black</option>
+            </select>
+            <input id="fontSize" type="number" min="12" max="300" value="96" aria-label="Font size" />
+            <input id="textColor" type="color" value="#df1760" aria-label="Text color" />
+            <div class="segmented" aria-label="Text alignment">
+              <button data-align="left">≡</button>
+              <button data-align="center" class="active">≡</button>
+              <button data-align="right">≡</button>
+            </div>
+            <button class="toolbar-button" id="editTextButton">Edit text</button>
+          </div>
+
+          <div class="statusbar">
+            <div class="zoom-controls">
+              <button id="zoomOut">−</button>
+              <span id="zoomLabel">100%</span>
+              <button id="zoomIn">＋</button>
+              <button id="fitButton">⛶</button>
+            </div>
+            <div class="object-status" id="objectStatus">1 object selected · X 210 · Y 240 · Rotation 0° · Scale 1.00</div>
+          </div>
+        </section>
+
+        <aside class="inspector" id="inspector">
+          <div class="inspector-tabs">
+            <button class="active">Export</button>
+            <button>Document</button>
+            <button>Shortcuts</button>
+          </div>
+
+          <section class="panel-section">
+            <h3>Format</h3>
+            <div class="format-switch" id="formatSwitch">
+              <button class="active" data-format="svg">SVG</button>
+              <button data-format="png">PNG</button>
+              <button data-format="jpeg">JPG</button>
+            </div>
+          </section>
+
+          <section class="panel-section" id="svgSettings">
+            <h3>SVG settings</h3>
+            <label class="field-label">Profile
+              <select id="svgProfile">
+                <option>SVG 1.1</option>
+              </select>
+            </label>
+            <label class="check-row"><input type="checkbox" checked /> Convert text to path-like vector</label>
+            <label class="check-row"><input type="checkbox" checked /> Remove empty groups</label>
+            <label class="check-row"><input type="checkbox" checked /> Remove metadata</label>
+            <label class="check-row"><input type="checkbox" checked /> Use short decimals</label>
+          </section>
+
+          <section class="panel-section">
+            <h3>Background</h3>
+            <label class="radio-row"><input type="radio" name="background" value="transparent" checked /> Transparent</label>
+            <label class="radio-row"><input type="radio" name="background" value="custom" /> Custom</label>
+            <input id="backgroundColor" type="color" value="#ffffff" disabled />
+          </section>
+
+          <section class="panel-section preview-section">
+            <h3>Preview</h3>
+            <pre id="exportPreview"></pre>
+            <div class="optimized" id="optimizedSize">Ready to export</div>
+          </section>
+
+          <div class="inspector-footer">
+            <button class="primary-button wide" id="downloadButton">Download SVG</button>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <dialog id="textDialog">
+      <form method="dialog" class="dialog-card">
+        <div class="dialog-header">
+          <div>
+            <h2>Edit text</h2>
+            <p>Persian, English, and mixed-direction content are supported.</p>
+          </div>
+          <button class="icon-button" value="cancel">×</button>
+        </div>
+        <textarea id="textInput" rows="5" dir="auto">متن خود را اینجا بنویسید</textarea>
+        <div class="dialog-actions">
+          <button class="secondary-button" value="cancel">Cancel</button>
+          <button class="primary-button" id="applyTextButton" value="default">Apply</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="frameDialog">
+      <form method="dialog" class="dialog-card compact">
+        <div class="dialog-header">
+          <div>
+            <h2>Choose frame</h2>
+            <p>The editor opens immediately with a sensible default.</p>
+          </div>
+          <button class="icon-button" value="cancel">×</button>
+        </div>
+        <div class="frame-grid" id="frameGrid"></div>
+      </form>
+    </dialog>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
