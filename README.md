@@ -18,12 +18,14 @@ Open `http://localhost:4173`.
 
 - Responsive desktop and mobile editor UI
 - Device-aware frame presets
+- Multiple text layers with a Layers panel (select, reorder, duplicate, hide, delete)
 - Persian, English, and mixed-direction text editing
-- Font family, weight, size, color, and alignment controls
+- Font family, weight, size, color, and alignment controls per layer
 - Drag, proportional scale, and rotation interactions
 - Undo and redo history
-- Transparent or custom backgrounds
+- Transparent, solid color, or uploaded image backgrounds with fit control
 - SVG, PNG, and JPEG export
+- Project autosave to `localStorage`, restored on reload
 - Local-only processing with no account or backend
 
 ## Important technical note
