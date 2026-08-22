@@ -14,6 +14,14 @@ python3 -m http.server 4173
 
 Open `http://localhost:4173`.
 
+## WordPress deployment (sayid.ir)
+
+The [`wordpress/`](./wordpress) folder contains a standalone, scoped build
+of this editor meant to be pasted directly into a WordPress page's Custom
+HTML block, deployed at `https://sayid.ir/online-story-font/`. It reads
+its font list from `https://sayid.ir/fonts/` on load. See
+[`wordpress/README.md`](./wordpress/README.md) for setup steps.
+
 ## Current prototype features
 
 - Responsive desktop and mobile editor UI
