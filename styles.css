@@ -67,8 +67,13 @@ body { margin: 0; min-width: 320px; min-height: 100vh; background: radial-gradie
 .canvas-viewport { overflow: auto; padding: 28px; display: grid; place-items: center; }
 .canvas-stage { transform-origin: center; transition: transform .15s ease; }
 .artboard { width: 1200px; height: 700px; position: relative; overflow: hidden; background: white; border-radius: 12px; box-shadow: 0 14px 40px rgba(44,26,37,.12); border: 1px solid #eadfe5; }
-.grid-layer { position: absolute; inset: 0; opacity: .35; background-image: radial-gradient(#c9bdc4 1px, transparent 1px); background-size: 18px 18px; }
+.artboard[data-bg="transparent"] { background-image: repeating-conic-gradient(#ece6ea 0% 25%, #ffffff 0% 50%); background-size: 20px 20px; }
+.grid-layer { position: absolute; inset: 0; opacity: .35; background-image: radial-gradient(#c9bdc4 1px, transparent 1px); background-size: 18px 18px; pointer-events: none; }
+.bg-image-layer { position: absolute; inset: 0; background-position: center; background-repeat: no-repeat; pointer-events: none; }
+.layers-root { position: absolute; inset: 0; }
 .text-object { position: absolute; left: 210px; top: 240px; width: 780px; min-height: 150px; display: grid; place-items: center; transform-origin: center; touch-action: none; user-select: none; }
+.text-object:not(.selected) .selection-box { border-style: solid; border-color: transparent; }
+.text-object:not(.selected) .handle, .text-object:not(.selected) .rotate-handle { display: none; }
 .text-render { width: 100%; padding: 24px; color: var(--accent); font-family: Vazirmatn, sans-serif; font-weight: 700; font-size: 96px; line-height: 1.25; text-align: center; white-space: pre-wrap; overflow-wrap: anywhere; }
 .selection-box { position: absolute; inset: 0; border: 2px dashed var(--accent); pointer-events: none; }
 .handle { width: 14px; height: 14px; border: 2px solid var(--accent); background: white; position: absolute; pointer-events: auto; }
@@ -90,8 +95,8 @@ body { margin: 0; min-width: 320px; min-height: 100vh; background: radial-gradie
 .object-status { font-size: 12px; color: var(--muted); }
 
 .inspector { border-left: 1px solid var(--border); background: white; overflow: auto; display: flex; flex-direction: column; }
-.inspector-tabs { display: grid; grid-template-columns: repeat(3,1fr); border-bottom: 1px solid var(--border); padding: 0 14px; }
-.inspector-tabs button { height: 52px; border: 0; background: transparent; color: var(--muted); }
+.inspector-tabs { display: grid; grid-template-columns: repeat(4,1fr); border-bottom: 1px solid var(--border); padding: 0 14px; }
+.inspector-tabs button { height: 52px; border: 0; background: transparent; color: var(--muted); font-size: 13px; }
 .inspector-tabs button.active { color: #1b151a; border-bottom: 2px solid var(--accent); font-weight: 750; }
 .panel-section { padding: 18px; border-bottom: 1px solid var(--border); }
 .panel-section h3 { font-size: 13px; margin: 0 0 12px; }
@@ -102,10 +107,35 @@ body { margin: 0; min-width: 320px; min-height: 100vh; background: radial-gradie
 .field-label select { height: 38px; border: 1px solid var(--border); border-radius: 9px; padding: 0 10px; background: white; }
 .check-row, .radio-row { display: flex; align-items: center; gap: 9px; margin: 12px 0; font-size: 13px; }
 input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); }
-#backgroundColor { width: 100%; height: 36px; border: 1px solid var(--border); border-radius: 9px; }
+#backgroundColor { width: 100%; height: 36px; border: 1px solid var(--border); border-radius: 9px; margin-bottom: 16px; }
+#backgroundColor:disabled { opacity: .4; }
+.bg-type-switch { margin-bottom: 16px; }
+.bg-type-switch button { width: auto; flex: 1; height: 42px; font-size: 12px; }
+.upload-row { display: flex; align-items: center; justify-content: center; gap: 8px; height: 42px; border: 1px dashed var(--border); border-radius: 10px; color: var(--accent); font-size: 13px; font-weight: 650; margin-bottom: 12px; }
+.upload-row:hover { background: var(--accent-soft); border-color: var(--accent); }
+.bg-image-preview { position: relative; margin-bottom: 14px; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+.bg-image-preview img { display: block; width: 100%; height: 110px; object-fit: cover; }
+.bg-image-preview .icon-button { position: absolute; top: 6px; right: 6px; width: 28px; height: 28px; background: rgba(255,255,255,.9); }
+.layers-panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.layers-panel-header h3 { margin: 0; }
+.layers-list { display: flex; flex-direction: column; gap: 8px; }
+.layer-row { display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; cursor: pointer; }
+.layer-row.active { border-color: var(--accent); background: var(--accent-soft); }
+.layer-visibility { border: 0; background: transparent; width: 24px; height: 24px; color: var(--accent); flex: none; }
+.layer-info { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.layer-name { font-size: 13px; font-weight: 650; }
+.layer-preview { font-size: 11px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.layer-actions { display: flex; gap: 2px; flex: none; }
+.layer-actions button { border: 0; background: transparent; width: 26px; height: 26px; border-radius: 6px; font-size: 12px; color: var(--muted); }
+.layer-actions button:hover { background: white; color: var(--accent); }
+.empty-hint { color: var(--muted); font-size: 13px; margin: 0; }
+.shortcuts-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.shortcuts-list li { display: flex; align-items: center; justify-content: space-between; font-size: 13px; }
+.shortcuts-list kbd { font-family: inherit; font-size: 11px; color: var(--muted); background: #faf7f9; border: 1px solid var(--border); border-radius: 6px; padding: 3px 7px; }
 .preview-section pre { margin: 0; max-height: 180px; overflow: auto; background: #fbf8fa; border: 1px solid var(--border); border-radius: 10px; padding: 12px; color: #71315a; font-size: 11px; white-space: pre-wrap; }
 .optimized { color: #159447; font-size: 12px; margin-top: 10px; }
 .inspector-footer { margin-top: auto; padding: 18px; position: sticky; bottom: 0; background: white; border-top: 1px solid var(--border); }
+.save-status { font-size: 11px; color: var(--muted); margin-bottom: 10px; text-align: center; }
 
 dialog { border: 0; border-radius: 18px; padding: 0; width: min(560px, calc(100vw - 32px)); box-shadow: 0 30px 90px rgba(46,15,33,.3); }
 dialog::backdrop { background: rgba(29,14,23,.42); backdrop-filter: blur(4px); }

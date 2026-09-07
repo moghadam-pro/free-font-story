@@ -14,16 +14,26 @@ python3 -m http.server 4173
 
 Open `http://localhost:4173`.
 
+## WordPress deployment (sayid.ir)
+
+The [`wordpress/`](./wordpress) folder contains a standalone, scoped build
+of this editor meant to be pasted directly into a WordPress page's Custom
+HTML block, deployed at `https://sayid.ir/online-story-font/`. It reads
+its font list from `https://sayid.ir/fonts/` on load. See
+[`wordpress/README.md`](./wordpress/README.md) for setup steps.
+
 ## Current prototype features
 
 - Responsive desktop and mobile editor UI
 - Device-aware frame presets
+- Multiple text layers with a Layers panel (select, reorder, duplicate, hide, delete)
 - Persian, English, and mixed-direction text editing
-- Font family, weight, size, color, and alignment controls
+- Font family, weight, size, color, and alignment controls per layer
 - Drag, proportional scale, and rotation interactions
 - Undo and redo history
-- Transparent or custom backgrounds
+- Transparent, solid color, or uploaded image backgrounds with fit control
 - SVG, PNG, and JPEG export
+- Project autosave to `localStorage`, restored on reload
 - Local-only processing with no account or backend
 
 ## Important technical note

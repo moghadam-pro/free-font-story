@@ -1,0 +1,1221 @@
+<!--
+  Free Font Story — WordPress page embed
+  =======================================
+  Paste this whole block into a "Custom HTML" block (Gutenberg) or an
+  HTML/Code widget in your page builder, on the page published at:
+    https://sayid.ir/online-story-font/
+
+  Requirements:
+  - Upload fonts-list.php into the /fonts/ folder itself, so it is reachable
+    at https://sayid.ir/fonts/list.php (see wordpress/README.md).
+  - Use a full-width / blank / "no header-footer" page template if your
+    theme offers one — this widget is a full editor UI, not a content block,
+    and looks best without the theme's header/footer squeezed around it.
+
+  Everything below (style + markup + script) is scoped under
+  .ffs-embed-root and wrapped in an IIFE, so it will not leak styles or
+  variables into the rest of your WordPress theme.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+<style>
+  .ffs-embed-root {
+    --accent: #df1760;
+    --accent-strong: #c90d52;
+    --accent-soft: #fff0f5;
+    --border: #ebe4e8;
+    --muted: #817781;
+    --panel: rgba(255, 255, 255, 0.96);
+    --shadow: 0 22px 70px rgba(94, 0, 38, 0.25);
+    display: block;
+    direction: ltr;
+    text-align: left;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: #151118;
+    font-synthesis: none;
+    margin: 0;
+    min-width: 320px;
+    min-height: 100vh;
+    background: radial-gradient(circle at top, #e62470 0, #ca0c52 46%, #a50943 100%);
+  }
+  .ffs-embed-root, .ffs-embed-root *, .ffs-embed-root *::before, .ffs-embed-root *::after { box-sizing: border-box; }
+  .ffs-embed-root button, .ffs-embed-root input, .ffs-embed-root select, .ffs-embed-root textarea { font: inherit; }
+  .ffs-embed-root button { cursor: pointer; }
+
+  .ffs-embed-root .app-shell {
+    width: min(1560px, calc(100vw - 28px));
+    height: calc(100vh - 28px);
+    margin: 14px auto;
+    overflow: hidden;
+    border-radius: 18px;
+    background: #fbfafb;
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(255,255,255,.68);
+  }
+
+  .ffs-embed-root .topbar {
+    height: 78px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(255,255,255,.9);
+    backdrop-filter: blur(14px);
+  }
+  .ffs-embed-root .brand-wrap { display: flex; align-items: center; gap: 12px; }
+  .ffs-embed-root .brand-mark { font-weight: 900; color: var(--accent); background: var(--accent-soft); border-radius: 10px; padding: 10px 11px; }
+  .ffs-embed-root .brand-title { font-size: 20px; font-weight: 800; letter-spacing: -.03em; }
+  .ffs-embed-root .brand-subtitle { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .ffs-embed-root .beta { font-size: 11px; font-weight: 700; color: var(--accent); background: var(--accent-soft); border-radius: 99px; padding: 4px 7px; vertical-align: middle; }
+  .ffs-embed-root .top-actions { display: flex; gap: 10px; align-items: center; }
+  .ffs-embed-root .icon-button, .ffs-embed-root .secondary-button, .ffs-embed-root .primary-button, .ffs-embed-root .toolbar-button { border: 1px solid var(--border); background: white; border-radius: 10px; height: 40px; padding: 0 14px; }
+  .ffs-embed-root .icon-button { width: 40px; padding: 0; font-size: 20px; }
+  .ffs-embed-root .primary-button { color: white; border-color: var(--accent); background: linear-gradient(135deg, #ec1d6c, #c90d52); font-weight: 750; box-shadow: 0 8px 20px rgba(223,23,96,.22); }
+  .ffs-embed-root .primary-button:hover { transform: translateY(-1px); }
+  .ffs-embed-root .secondary-button:hover, .ffs-embed-root .icon-button:hover, .ffs-embed-root .toolbar-button:hover { background: #faf7f9; }
+  .ffs-embed-root .wide { width: 100%; }
+
+  .ffs-embed-root .workspace { height: calc(100% - 78px); display: grid; grid-template-columns: 92px minmax(0, 1fr) 352px; }
+  .ffs-embed-root .left-rail { border-right: 1px solid var(--border); background: white; padding: 16px 12px; display: flex; flex-direction: column; gap: 10px; }
+  .ffs-embed-root .rail-button { border: 0; background: transparent; color: var(--muted); min-height: 62px; border-radius: 12px; display: grid; place-items: center; gap: 3px; }
+  .ffs-embed-root .rail-button span { font-size: 21px; }
+  .ffs-embed-root .rail-button small { font-size: 11px; }
+  .ffs-embed-root .rail-button.active { color: white; background: linear-gradient(135deg, #ed226e, #c90d52); box-shadow: 0 8px 20px rgba(223,23,96,.22); }
+
+  .ffs-embed-root .stage-column { position: relative; min-width: 0; display: grid; grid-template-rows: 45px minmax(0,1fr) 58px; background: #f8f5f7; }
+  .ffs-embed-root .document-strip { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); background: white; padding: 0 14px; }
+  .ffs-embed-root .document-tab { height: 100%; display: flex; align-items: center; gap: 18px; font-size: 13px; border-right: 1px solid var(--border); padding-right: 16px; }
+  .ffs-embed-root .document-tab button { border: 0; background: transparent; color: var(--muted); }
+  .ffs-embed-root .frame-pill { font-size: 12px; color: var(--muted); background: #f8f5f7; border: 1px solid var(--border); border-radius: 999px; padding: 7px 11px; }
+
+  .ffs-embed-root .canvas-viewport { overflow: auto; padding: 28px; display: grid; place-items: center; }
+  .ffs-embed-root .canvas-stage { transform-origin: center; transition: transform .15s ease; }
+  .ffs-embed-root .artboard { width: 1200px; height: 700px; position: relative; overflow: hidden; background: white; border-radius: 12px; box-shadow: 0 14px 40px rgba(44,26,37,.12); border: 1px solid #eadfe5; }
+  .ffs-embed-root .artboard[data-bg="transparent"] { background-image: repeating-conic-gradient(#ece6ea 0% 25%, #ffffff 0% 50%); background-size: 20px 20px; }
+  .ffs-embed-root .grid-layer { position: absolute; inset: 0; opacity: .35; background-image: radial-gradient(#c9bdc4 1px, transparent 1px); background-size: 18px 18px; pointer-events: none; }
+  .ffs-embed-root .bg-image-layer { position: absolute; inset: 0; background-position: center; background-repeat: no-repeat; pointer-events: none; }
+  .ffs-embed-root .layers-root { position: absolute; inset: 0; }
+  .ffs-embed-root .text-object { position: absolute; left: 210px; top: 240px; width: 780px; min-height: 150px; display: grid; place-items: center; transform-origin: center; touch-action: none; user-select: none; }
+  .ffs-embed-root .text-object:not(.selected) .selection-box { border-style: solid; border-color: transparent; }
+  .ffs-embed-root .text-object:not(.selected) .handle, .ffs-embed-root .text-object:not(.selected) .rotate-handle { display: none; }
+  .ffs-embed-root .text-render { width: 100%; padding: 24px; color: var(--accent); font-family: Vazirmatn, sans-serif; font-weight: 700; font-size: 96px; line-height: 1.25; text-align: center; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .ffs-embed-root .selection-box { position: absolute; inset: 0; border: 2px dashed var(--accent); pointer-events: none; }
+  .ffs-embed-root .handle { width: 14px; height: 14px; border: 2px solid var(--accent); background: white; position: absolute; pointer-events: auto; }
+  .ffs-embed-root .handle.nw { left: -8px; top: -8px; } .ffs-embed-root .handle.ne { right: -8px; top: -8px; } .ffs-embed-root .handle.sw { left: -8px; bottom: -8px; } .ffs-embed-root .handle.se { right: -8px; bottom: -8px; }
+  .ffs-embed-root .rotate-handle { width: 36px; height: 36px; border-radius: 50%; position: absolute; left: 50%; bottom: -55px; transform: translateX(-50%); display: grid; place-items: center; color: var(--accent); background: var(--accent-soft); border: 1px solid #ffd0df; pointer-events: auto; }
+
+  .ffs-embed-root .floating-toolbar { position: absolute; z-index: 5; left: 50%; bottom: 72px; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,.97); border: 1px solid var(--border); box-shadow: 0 16px 36px rgba(51,25,41,.14); padding: 10px; border-radius: 14px; }
+  .ffs-embed-root .floating-toolbar select, .ffs-embed-root .floating-toolbar input[type="number"] { height: 38px; border: 1px solid var(--border); border-radius: 9px; background: white; padding: 0 10px; }
+  .ffs-embed-root .floating-toolbar input[type="number"] { width: 82px; }
+  .ffs-embed-root .floating-toolbar input[type="color"] { width: 40px; height: 38px; border: 0; padding: 2px; background: transparent; }
+  .ffs-embed-root .segmented { display: flex; border: 1px solid var(--border); border-radius: 9px; overflow: hidden; }
+  .ffs-embed-root .segmented button { width: 34px; height: 36px; border: 0; border-right: 1px solid var(--border); background: white; }
+  .ffs-embed-root .segmented button:last-child { border-right: 0; }
+  .ffs-embed-root .segmented button.active { color: var(--accent); background: var(--accent-soft); }
+
+  .ffs-embed-root .statusbar { display: flex; align-items: center; justify-content: space-between; padding: 0 16px; background: white; border-top: 1px solid var(--border); }
+  .ffs-embed-root .zoom-controls { display: flex; align-items: center; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .ffs-embed-root .zoom-controls button, .ffs-embed-root .zoom-controls span { border: 0; background: white; height: 34px; min-width: 42px; display: grid; place-items: center; }
+  .ffs-embed-root .object-status { font-size: 12px; color: var(--muted); }
+
+  .ffs-embed-root .inspector { border-left: 1px solid var(--border); background: white; overflow: auto; display: flex; flex-direction: column; }
+  .ffs-embed-root .inspector-tabs { display: grid; grid-template-columns: repeat(4,1fr); border-bottom: 1px solid var(--border); padding: 0 14px; }
+  .ffs-embed-root .inspector-tabs button { height: 52px; border: 0; background: transparent; color: var(--muted); font-size: 13px; }
+  .ffs-embed-root .inspector-tabs button.active { color: #1b151a; border-bottom: 2px solid var(--accent); font-weight: 750; }
+  .ffs-embed-root .panel-section { padding: 18px; border-bottom: 1px solid var(--border); }
+  .ffs-embed-root .panel-section h3 { font-size: 13px; margin: 0 0 12px; }
+  .ffs-embed-root .format-switch { display: grid; grid-template-columns: repeat(3,1fr); background: #faf7f9; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .ffs-embed-root .format-switch button { height: 42px; border: 0; background: transparent; }
+  .ffs-embed-root .format-switch button.active { color: var(--accent); background: var(--accent-soft); font-weight: 750; }
+  .ffs-embed-root .field-label { display: grid; gap: 8px; font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+  .ffs-embed-root .field-label select { height: 38px; border: 1px solid var(--border); border-radius: 9px; padding: 0 10px; background: white; }
+  .ffs-embed-root .check-row, .ffs-embed-root .radio-row { display: flex; align-items: center; gap: 9px; margin: 12px 0; font-size: 13px; }
+  .ffs-embed-root input[type="checkbox"], .ffs-embed-root input[type="radio"] { accent-color: var(--accent); }
+  .ffs-embed-root #ffsBackgroundColor { width: 100%; height: 36px; border: 1px solid var(--border); border-radius: 9px; margin-bottom: 16px; }
+  .ffs-embed-root #ffsBackgroundColor:disabled { opacity: .4; }
+  .ffs-embed-root .bg-type-switch { margin-bottom: 16px; }
+  .ffs-embed-root .bg-type-switch button { width: auto; flex: 1; height: 42px; font-size: 12px; }
+  .ffs-embed-root .upload-row { display: flex; align-items: center; justify-content: center; gap: 8px; height: 42px; border: 1px dashed var(--border); border-radius: 10px; color: var(--accent); font-size: 13px; font-weight: 650; margin-bottom: 12px; }
+  .ffs-embed-root .upload-row:hover { background: var(--accent-soft); border-color: var(--accent); }
+  .ffs-embed-root .bg-image-preview { position: relative; margin-bottom: 14px; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+  .ffs-embed-root .bg-image-preview img { display: block; width: 100%; height: 110px; object-fit: cover; }
+  .ffs-embed-root .bg-image-preview .icon-button { position: absolute; top: 6px; right: 6px; width: 28px; height: 28px; background: rgba(255,255,255,.9); }
+  .ffs-embed-root .layers-panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .ffs-embed-root .layers-panel-header h3 { margin: 0; }
+  .ffs-embed-root .layers-list { display: flex; flex-direction: column; gap: 8px; }
+  .ffs-embed-root .layer-row { display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; cursor: pointer; }
+  .ffs-embed-root .layer-row.active { border-color: var(--accent); background: var(--accent-soft); }
+  .ffs-embed-root .layer-visibility { border: 0; background: transparent; width: 24px; height: 24px; color: var(--accent); flex: none; }
+  .ffs-embed-root .layer-info { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+  .ffs-embed-root .layer-name { font-size: 13px; font-weight: 650; }
+  .ffs-embed-root .layer-preview { font-size: 11px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ffs-embed-root .layer-actions { display: flex; gap: 2px; flex: none; }
+  .ffs-embed-root .layer-actions button { border: 0; background: transparent; width: 26px; height: 26px; border-radius: 6px; font-size: 12px; color: var(--muted); }
+  .ffs-embed-root .layer-actions button:hover { background: white; color: var(--accent); }
+  .ffs-embed-root .empty-hint { color: var(--muted); font-size: 13px; margin: 0; }
+  .ffs-embed-root .shortcuts-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .ffs-embed-root .shortcuts-list li { display: flex; align-items: center; justify-content: space-between; font-size: 13px; }
+  .ffs-embed-root .shortcuts-list kbd { font-family: inherit; font-size: 11px; color: var(--muted); background: #faf7f9; border: 1px solid var(--border); border-radius: 6px; padding: 3px 7px; }
+  .ffs-embed-root .preview-section pre { margin: 0; max-height: 180px; overflow: auto; background: #fbf8fa; border: 1px solid var(--border); border-radius: 10px; padding: 12px; color: #71315a; font-size: 11px; white-space: pre-wrap; }
+  .ffs-embed-root .optimized { color: #159447; font-size: 12px; margin-top: 10px; }
+  .ffs-embed-root .inspector-footer { margin-top: auto; padding: 18px; position: sticky; bottom: 0; background: white; border-top: 1px solid var(--border); }
+  .ffs-embed-root .save-status { font-size: 11px; color: var(--muted); margin-bottom: 10px; text-align: center; }
+  .ffs-embed-root .font-status { font-size: 11px; color: var(--muted); margin: -8px 0 14px; }
+
+  .ffs-embed-root dialog { border: 0; border-radius: 18px; padding: 0; width: min(560px, calc(100vw - 32px)); box-shadow: 0 30px 90px rgba(46,15,33,.3); }
+  .ffs-embed-root dialog::backdrop { background: rgba(29,14,23,.42); backdrop-filter: blur(4px); }
+  .ffs-embed-root .dialog-card { padding: 20px; }
+  .ffs-embed-root .dialog-card.compact { width: 100%; }
+  .ffs-embed-root .dialog-header { display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; }
+  .ffs-embed-root .dialog-header h2 { margin: 0; }
+  .ffs-embed-root .dialog-header p { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
+  .ffs-embed-root #ffsTextInput { width: 100%; margin: 18px 0; border: 1px solid var(--border); border-radius: 12px; padding: 14px; resize: vertical; font-family: Vazirmatn, sans-serif; font-size: 26px; }
+  .ffs-embed-root .dialog-actions { display: flex; justify-content: flex-end; gap: 10px; }
+  .ffs-embed-root .frame-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; margin-top: 18px; }
+  .ffs-embed-root .frame-option { text-align: left; border: 1px solid var(--border); border-radius: 12px; padding: 14px; background: white; }
+  .ffs-embed-root .frame-option:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .ffs-embed-root .frame-option strong { display: block; margin-bottom: 5px; }
+  .ffs-embed-root .frame-option span { color: var(--muted); font-size: 12px; }
+
+  @media (max-width: 1100px) {
+    .ffs-embed-root .workspace { grid-template-columns: 74px minmax(0,1fr); }
+    .ffs-embed-root .inspector { position: fixed; z-index: 20; right: 16px; top: 94px; bottom: 16px; width: min(352px, calc(100vw - 32px)); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow); transform: translateX(calc(100% + 32px)); transition: transform .2s ease; }
+    .ffs-embed-root .inspector.open { transform: translateX(0); }
+    .ffs-embed-root .brand-subtitle { display: none; }
+  }
+
+  @media (max-width: 720px) {
+    .ffs-embed-root .app-shell { width: 100%; height: 100vh; margin: 0; border-radius: 0; }
+    .ffs-embed-root .topbar { height: 64px; padding: 0 12px; }
+    .ffs-embed-root .brand-mark { display: none; }
+    .ffs-embed-root .brand-title { font-size: 17px; }
+    .ffs-embed-root .workspace { height: calc(100% - 64px); grid-template-columns: 1fr; grid-template-rows: minmax(0,1fr) 66px; }
+    .ffs-embed-root .left-rail { order: 2; border-right: 0; border-top: 1px solid var(--border); flex-direction: row; padding: 6px; justify-content: space-around; }
+    .ffs-embed-root .rail-button { min-height: 52px; min-width: 58px; }
+    .ffs-embed-root .stage-column { order: 1; grid-row: 1; grid-template-rows: 42px minmax(0,1fr) 48px; }
+    .ffs-embed-root .document-strip { padding: 0 8px; }
+    .ffs-embed-root .frame-pill { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ffs-embed-root .canvas-viewport { padding: 16px; }
+    .ffs-embed-root .floating-toolbar { left: 10px; right: 10px; bottom: 56px; transform: none; overflow-x: auto; justify-content: flex-start; }
+    .ffs-embed-root .floating-toolbar select { min-width: 130px; }
+    .ffs-embed-root .object-status { display: none; }
+    .ffs-embed-root .top-actions .icon-button, .ffs-embed-root .top-actions .secondary-button { display: none; }
+    .ffs-embed-root .frame-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="ffs-embed-root" id="ffsAppRoot">
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-wrap">
+        <div class="brand-mark">F→P</div>
+        <div>
+          <div class="brand-title">Free Font Story <span class="beta">Beta</span></div>
+          <div class="brand-subtitle">Text to clean paths, locally in your browser</div>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <button class="icon-button" id="ffsUndoButton" title="Undo">↶</button>
+        <button class="icon-button" id="ffsRedoButton" title="Redo">↷</button>
+        <button class="secondary-button" id="ffsFrameButton">▣ Frame</button>
+        <button class="primary-button" id="ffsExportButton">⇧ Export</button>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <aside class="left-rail" aria-label="Tools">
+        <button class="rail-button active" data-tool="text"><span>T</span><small>Text</small></button>
+        <button class="rail-button" data-tool="frame"><span>▣</span><small>Frame</small></button>
+        <button class="rail-button" data-tool="select"><span>⌁</span><small>Select</small></button>
+        <button class="rail-button" data-tool="background"><span>◫</span><small>Background</small></button>
+        <button class="rail-button" data-tool="layers"><span>◇</span><small>Layers</small></button>
+      </aside>
+
+      <section class="stage-column">
+        <div class="document-strip">
+          <div class="document-tab">Untitled 1 <button id="ffsResetButton" title="New document">×</button></div>
+          <div class="frame-pill" id="ffsFramePill">Desktop · 1200 × 700</div>
+        </div>
+
+        <div class="canvas-viewport" id="ffsCanvasViewport">
+          <div class="canvas-stage" id="ffsCanvasStage">
+            <div class="artboard" id="ffsArtboard" data-bg="transparent">
+              <div class="grid-layer"></div>
+              <div class="bg-image-layer" id="ffsBgImageLayer"></div>
+              <div class="layers-root" id="ffsLayersRoot"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="floating-toolbar" id="ffsTextToolbar">
+          <select id="ffsFontFamily" aria-label="Font family">
+            <option value="Vazirmatn">Vazirmatn</option>
+            <option value="Arial">Arial</option>
+            <option value="Georgia">Georgia</option>
+            <option value="Tahoma">Tahoma</option>
+            <option value="system-ui">System UI</option>
+          </select>
+          <select id="ffsFontWeight" aria-label="Font weight">
+            <option value="400">Regular</option>
+            <option value="500">Medium</option>
+            <option value="600">Semi Bold</option>
+            <option value="700" selected>Bold</option>
+            <option value="800">Extra Bold</option>
+            <option value="900">Black</option>
+          </select>
+          <input id="ffsFontSize" type="number" min="12" max="300" value="96" aria-label="Font size" />
+          <input id="ffsTextColor" type="color" value="#df1760" aria-label="Text color" />
+          <div class="segmented" aria-label="Text alignment">
+            <button data-align="left">≡</button>
+            <button data-align="center" class="active">≡</button>
+            <button data-align="right">≡</button>
+          </div>
+          <button class="toolbar-button" id="ffsEditTextButton">Edit text</button>
+        </div>
+
+        <div class="statusbar">
+          <div class="zoom-controls">
+            <button id="ffsZoomOut">−</button>
+            <span id="ffsZoomLabel">100%</span>
+            <button id="ffsZoomIn">＋</button>
+            <button id="ffsFitButton">⛶</button>
+          </div>
+          <div class="object-status" id="ffsObjectStatus">1 layer · Selected "Text 1" · X 210 · Y 240 · Rotation 0° · Scale 1.00</div>
+        </div>
+      </section>
+
+      <aside class="inspector" id="ffsInspector">
+        <div class="inspector-tabs" id="ffsInspectorTabs">
+          <button class="active" data-tab="export">Export</button>
+          <button data-tab="layers">Layers</button>
+          <button data-tab="background">Background</button>
+          <button data-tab="shortcuts">Shortcuts</button>
+        </div>
+
+        <div class="tab-panel" data-tab-panel="export">
+          <section class="panel-section">
+            <h3>Format</h3>
+            <div class="format-switch" id="ffsFormatSwitch">
+              <button class="active" data-format="svg">SVG</button>
+              <button data-format="png">PNG</button>
+              <button data-format="jpeg">JPG</button>
+            </div>
+          </section>
+
+          <section class="panel-section" id="ffsSvgSettings">
+            <h3>SVG settings</h3>
+            <label class="field-label">Profile
+              <select id="ffsSvgProfile">
+                <option>SVG 1.1</option>
+              </select>
+            </label>
+            <label class="check-row"><input type="checkbox" checked /> Convert text to path-like vector</label>
+            <label class="check-row"><input type="checkbox" checked /> Remove empty groups</label>
+            <label class="check-row"><input type="checkbox" checked /> Remove metadata</label>
+            <label class="check-row"><input type="checkbox" checked /> Use short decimals</label>
+          </section>
+
+          <section class="panel-section preview-section">
+            <h3>Preview</h3>
+            <pre id="ffsExportPreview"></pre>
+            <div class="optimized" id="ffsOptimizedSize">Ready to export</div>
+          </section>
+        </div>
+
+        <div class="tab-panel" data-tab-panel="layers" hidden>
+          <section class="panel-section layers-panel">
+            <div class="layers-panel-header">
+              <h3>Layers</h3>
+              <button class="secondary-button" id="ffsAddLayerButton">+ Add text</button>
+            </div>
+            <div class="layers-list" id="ffsLayersList"></div>
+          </section>
+        </div>
+
+        <div class="tab-panel" data-tab-panel="background" hidden>
+          <section class="panel-section">
+            <h3>Background</h3>
+            <div class="segmented bg-type-switch" id="ffsBgTypeSwitch" aria-label="Background type">
+              <button data-bg="transparent" class="active">Transparent</button>
+              <button data-bg="color">Color</button>
+              <button data-bg="image">Image</button>
+            </div>
+            <input id="ffsBackgroundColor" type="color" value="#ffffff" disabled />
+
+            <div class="bg-image-controls" id="ffsBgImageControls" hidden>
+              <label class="upload-row" for="ffsBgImageInput">
+                ⇧ Upload image
+                <input id="ffsBgImageInput" type="file" accept="image/*" hidden />
+              </label>
+              <div class="bg-image-preview" id="ffsBgImagePreview" hidden>
+                <img id="ffsBgImagePreviewImg" alt="Background preview" />
+                <button class="icon-button" id="ffsRemoveBgImageButton" title="Remove image">×</button>
+              </div>
+              <label class="field-label">Fit
+                <select id="ffsBgFit">
+                  <option value="cover">Cover</option>
+                  <option value="contain">Contain</option>
+                  <option value="stretch">Stretch</option>
+                </select>
+              </label>
+            </div>
+          </section>
+        </div>
+
+        <div class="tab-panel" data-tab-panel="shortcuts" hidden>
+          <section class="panel-section">
+            <h3>Shortcuts</h3>
+            <ul class="shortcuts-list">
+              <li><span>Undo</span><kbd>Ctrl/Cmd + Z</kbd></li>
+              <li><span>Redo</span><kbd>Ctrl/Cmd + Shift + Z</kbd></li>
+              <li><span>Edit selected text</span><kbd>Enter / Double-click</kbd></li>
+              <li><span>Delete selected layer</span><kbd>Delete</kbd></li>
+              <li><span>Fit to screen</span><kbd>⛶ button</kbd></li>
+            </ul>
+          </section>
+        </div>
+
+        <div class="inspector-footer">
+          <div class="save-status" id="ffsSaveStatus">Not saved yet</div>
+          <button class="primary-button wide" id="ffsDownloadButton">Download SVG</button>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <dialog id="ffsTextDialog">
+    <form method="dialog" class="dialog-card">
+      <div class="dialog-header">
+        <div>
+          <h2>Edit text</h2>
+          <p>Persian, English, and mixed-direction content are supported.</p>
+        </div>
+        <button class="icon-button" value="cancel">×</button>
+      </div>
+      <textarea id="ffsTextInput" rows="5" dir="auto">متن خود را اینجا بنویسید</textarea>
+      <div class="dialog-actions">
+        <button class="secondary-button" value="cancel">Cancel</button>
+        <button class="primary-button" id="ffsApplyTextButton" value="default">Apply</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="ffsFrameDialog">
+    <form method="dialog" class="dialog-card compact">
+      <div class="dialog-header">
+        <div>
+          <h2>Choose frame</h2>
+          <p>The editor opens immediately with a sensible default.</p>
+        </div>
+        <button class="icon-button" value="cancel">×</button>
+      </div>
+      <div class="frame-grid" id="ffsFrameGrid"></div>
+    </form>
+  </dialog>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var root = document.getElementById('ffsAppRoot');
+  if (!root || root.dataset.ffsInitialized === '1') return;
+  root.dataset.ffsInitialized = '1';
+
+  var STORAGE_KEY = 'free-font-story:sayid:v1';
+  var FONTS_ENDPOINT = 'https://sayid.ir/fonts/list.php';
+  var FONTS_BASE_URL = 'https://sayid.ir/fonts/';
+
+  var uidCounter = 0;
+  function uid() {
+    uidCounter += 1;
+    return 'layer-' + Date.now().toString(36) + '-' + uidCounter;
+  }
+
+  function createTextLayer(overrides) {
+    overrides = overrides || {};
+    var base = {
+      id: uid(),
+      type: 'text',
+      name: 'Text layer',
+      text: 'متن خود را اینجا بنویسید',
+      fontFamily: 'Vazirmatn',
+      fontWeight: 700,
+      fontSize: 96,
+      color: '#df1760',
+      align: 'center',
+      x: 210,
+      y: 240,
+      scale: 1,
+      rotation: 0,
+      visible: true,
+    };
+    for (var key in overrides) base[key] = overrides[key];
+    return base;
+  }
+
+  function defaultState() {
+    var layer = createTextLayer({ name: 'Text 1' });
+    return {
+      layers: [layer],
+      selectedLayerId: layer.id,
+      frame: { name: 'Desktop', width: 1200, height: 700 },
+      zoom: 1,
+      format: 'svg',
+      background: { type: 'transparent', color: '#ffffff', image: null, fit: 'cover' },
+    };
+  }
+
+  var state = loadFromStorage() || defaultState();
+
+  var history = [];
+  var historyIndex = -1;
+  var interaction = null;
+  var saveTimer = null;
+
+  function $(selector) { return root.querySelector(selector); }
+  function $$(selector) { return [].slice.call(root.querySelectorAll(selector)); }
+
+  var els = {
+    artboard: $('#ffsArtboard'),
+    stage: $('#ffsCanvasStage'),
+    layersRoot: $('#ffsLayersRoot'),
+    bgImageLayer: $('#ffsBgImageLayer'),
+    textInput: $('#ffsTextInput'),
+    textDialog: $('#ffsTextDialog'),
+    frameDialog: $('#ffsFrameDialog'),
+    frameGrid: $('#ffsFrameGrid'),
+    framePill: $('#ffsFramePill'),
+    textToolbar: $('#ffsTextToolbar'),
+    exportPreview: $('#ffsExportPreview'),
+    optimizedSize: $('#ffsOptimizedSize'),
+    objectStatus: $('#ffsObjectStatus'),
+    inspector: $('#ffsInspector'),
+    downloadButton: $('#ffsDownloadButton'),
+    svgSettings: $('#ffsSvgSettings'),
+    layersList: $('#ffsLayersList'),
+    addLayerButton: $('#ffsAddLayerButton'),
+    backgroundColor: $('#ffsBackgroundColor'),
+    bgImageControls: $('#ffsBgImageControls'),
+    bgImageInput: $('#ffsBgImageInput'),
+    bgImagePreview: $('#ffsBgImagePreview'),
+    bgImagePreviewImg: $('#ffsBgImagePreviewImg'),
+    removeBgImageButton: $('#ffsRemoveBgImageButton'),
+    bgFit: $('#ffsBgFit'),
+    saveStatus: $('#ffsSaveStatus'),
+    fontFamily: $('#ffsFontFamily'),
+  };
+
+  var layerElements = new Map();
+
+  var frames = [
+    { name: 'Desktop', width: 1200, height: 700 },
+    { name: 'Instagram Story', width: 1080, height: 1920 },
+    { name: 'Square', width: 1080, height: 1080 },
+    { name: 'Landscape Video', width: 1920, height: 1080 },
+    { name: 'Mobile', width: 390, height: 844 },
+    { name: 'LinkedIn Post', width: 1200, height: 627 },
+  ];
+
+  function escapeMarkup(value) {
+    return String(value).replace(/[&<>"']/g, function (char) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' }[char];
+    });
+  }
+
+  function snapshot() {
+    return JSON.parse(JSON.stringify(state));
+  }
+
+  function loadFromStorage() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      var parsed = JSON.parse(raw);
+      if (!parsed || !Array.isArray(parsed.layers)) return null;
+      return parsed;
+    } catch (err) {
+      return null;
+    }
+  }
+
+  function saveToStorage() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      setSaveStatus('Saved locally · ' + new Date().toLocaleTimeString());
+    } catch (err) {
+      setSaveStatus('Local save failed (storage full)');
+    }
+  }
+
+  function scheduleSave() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(saveToStorage, 300);
+  }
+
+  function setSaveStatus(text) {
+    if (els.saveStatus) els.saveStatus.textContent = text;
+  }
+
+  function commitHistory() {
+    history.splice(historyIndex + 1);
+    history.push(snapshot());
+    historyIndex = history.length - 1;
+    updateHistoryButtons();
+    scheduleSave();
+  }
+
+  function restoreHistory(index) {
+    if (index < 0 || index >= history.length) return;
+    var restored = JSON.parse(JSON.stringify(history[index]));
+    for (var key in state) delete state[key];
+    for (var key2 in restored) state[key2] = restored[key2];
+    historyIndex = index;
+    render();
+    updateHistoryButtons();
+    scheduleSave();
+  }
+
+  function updateHistoryButtons() {
+    $('#ffsUndoButton').disabled = historyIndex <= 0;
+    $('#ffsRedoButton').disabled = historyIndex >= history.length - 1;
+  }
+
+  function detectDirection(value) {
+    var match = value.match(/[A-Za-z؀-ۿ]/);
+    var firstStrong = match ? match[0] : null;
+    return firstStrong && /[؀-ۿ]/.test(firstStrong) ? 'rtl' : 'ltr';
+  }
+
+  function getLayer(id) {
+    for (var i = 0; i < state.layers.length; i += 1) {
+      if (state.layers[i].id === id) return state.layers[i];
+    }
+    return null;
+  }
+
+  function getSelectedLayer() {
+    return state.selectedLayerId ? getLayer(state.selectedLayerId) : null;
+  }
+
+  function selectLayer(id) {
+    if (state.selectedLayerId === id) return;
+    state.selectedLayerId = id;
+    render();
+  }
+
+  function withSelectedLayer(mutate, options) {
+    var commit = !options || options.commit !== false;
+    var layer = getSelectedLayer();
+    if (!layer) return;
+    mutate(layer);
+    if (commit) commitHistory();
+    render();
+  }
+
+  function fitArtboard() {
+    var viewport = $('#ffsCanvasViewport').getBoundingClientRect();
+    var xScale = Math.max(0.15, (viewport.width - 56) / state.frame.width);
+    var yScale = Math.max(0.15, (viewport.height - 56) / state.frame.height);
+    state.zoom = Math.min(1, xScale, yScale);
+    renderZoom();
+  }
+
+  function renderZoom() {
+    els.stage.style.transform = 'scale(' + state.zoom + ')';
+    $('#ffsZoomLabel').textContent = Math.round(state.zoom * 100) + '%';
+  }
+
+  function buildBackgroundMarkup() {
+    var bg = state.background;
+    if (bg.type === 'color') return '<rect width="100%" height="100%" fill="' + bg.color + '"/>';
+    if (bg.type === 'image' && bg.image) {
+      var preserveAspectRatio = bg.fit === 'contain' ? 'xMidYMid meet' : bg.fit === 'stretch' ? 'none' : 'xMidYMid slice';
+      return '<image href="' + bg.image + '" x="0" y="0" width="' + state.frame.width + '" height="' + state.frame.height + '" preserveAspectRatio="' + preserveAspectRatio + '"/>';
+    }
+    return '';
+  }
+
+  function layerToSvg(layer) {
+    var escaped = escapeMarkup(layer.text);
+    var anchor = layer.align === 'center' ? 'middle' : layer.align === 'right' ? 'end' : 'start';
+    var x = layer.x + (layer.align === 'center' ? 390 : layer.align === 'right' ? 780 : 0);
+    var y = layer.y + layer.fontSize * 1.1;
+    return '<g transform="rotate(' + layer.rotation + ' ' + (layer.x + 390) + ' ' + (layer.y + 75) + ') scale(' + layer.scale + ')">\n' +
+      '    <text x="' + x + '" y="' + y + '" direction="' + detectDirection(layer.text) + '" text-anchor="' + anchor + '" font-family="' + layer.fontFamily + '" font-size="' + layer.fontSize + '" font-weight="' + layer.fontWeight + '" fill="' + layer.color + '">' + escaped + '</text>\n' +
+      '  </g>';
+  }
+
+  function buildSvg() {
+    var bgMarkup = buildBackgroundMarkup();
+    var layersMarkup = state.layers.filter(function (layer) { return layer.visible; }).map(layerToSvg).join('\n  ');
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="' + state.frame.width + '" height="' + state.frame.height + '" viewBox="0 0 ' + state.frame.width + ' ' + state.frame.height + '">\n' +
+      '  ' + bgMarkup + '\n' +
+      '  ' + layersMarkup + '\n' +
+      '</svg>';
+  }
+
+  function renderPreview() {
+    var svg = buildSvg();
+    els.exportPreview.textContent = svg;
+    els.optimizedSize.textContent = 'Estimated size: ' + (new Blob([svg]).size / 1024).toFixed(2) + ' KB';
+    els.downloadButton.textContent = 'Download ' + state.format.toUpperCase();
+    els.svgSettings.hidden = state.format !== 'svg';
+  }
+
+  function renderBackground() {
+    var bg = state.background;
+    els.artboard.dataset.bg = bg.type;
+    els.artboard.style.background = bg.type === 'color' ? bg.color : '';
+
+    els.bgImageLayer.style.backgroundImage = bg.type === 'image' && bg.image ? 'url("' + bg.image + '")' : 'none';
+    els.bgImageLayer.style.backgroundSize = bg.fit === 'stretch' ? '100% 100%' : bg.fit;
+
+    $$('#ffsBgTypeSwitch [data-bg]').forEach(function (button) { button.classList.toggle('active', button.dataset.bg === bg.type); });
+    els.backgroundColor.value = bg.color;
+    els.backgroundColor.disabled = bg.type !== 'color';
+    els.bgImageControls.hidden = bg.type !== 'image';
+    els.bgFit.value = bg.fit;
+    els.bgImagePreview.hidden = !bg.image;
+    if (bg.image) els.bgImagePreviewImg.src = bg.image;
+  }
+
+  function ensureLayerElements() {
+    var ids = {};
+    state.layers.forEach(function (layer) { ids[layer.id] = true; });
+
+    layerElements.forEach(function (entry, id) {
+      if (!ids[id]) {
+        entry.root.remove();
+        layerElements.delete(id);
+      }
+    });
+
+    state.layers.forEach(function (layer) {
+      if (layerElements.has(layer.id)) return;
+      var layerRoot = document.createElement('div');
+      layerRoot.className = 'text-object';
+      layerRoot.dataset.layerId = layer.id;
+      layerRoot.tabIndex = 0;
+      layerRoot.setAttribute('aria-label', 'Editable text layer');
+      layerRoot.innerHTML =
+        '<div class="selection-box">' +
+        '<span class="handle nw" data-handle="nw"></span>' +
+        '<span class="handle ne" data-handle="ne"></span>' +
+        '<span class="handle sw" data-handle="sw"></span>' +
+        '<span class="handle se" data-handle="se"></span>' +
+        '<span class="rotate-handle" data-handle="rotate">↻</span>' +
+        '</div>' +
+        '<div class="text-render"></div>';
+      var textRender = layerRoot.querySelector('.text-render');
+
+      (function (layerId) {
+        layerRoot.addEventListener('pointerdown', function (event) { startInteraction(event, layerId); });
+        layerRoot.addEventListener('dblclick', function () {
+          selectLayer(layerId);
+          openTextDialog();
+        });
+      })(layer.id);
+      layerRoot.addEventListener('pointermove', moveInteraction);
+      layerRoot.addEventListener('pointerup', endInteraction);
+      layerRoot.addEventListener('pointercancel', endInteraction);
+
+      layerElements.set(layer.id, { root: layerRoot, textRender: textRender });
+    });
+
+    state.layers.forEach(function (layer) {
+      els.layersRoot.appendChild(layerElements.get(layer.id).root);
+    });
+  }
+
+  function renderLayers() {
+    ensureLayerElements();
+
+    state.layers.forEach(function (layer) {
+      var entry = layerElements.get(layer.id);
+      var layerRoot = entry.root;
+      var textRender = entry.textRender;
+      layerRoot.classList.toggle('selected', layer.id === state.selectedLayerId);
+      layerRoot.style.display = layer.visible ? '' : 'none';
+      layerRoot.style.left = layer.x + 'px';
+      layerRoot.style.top = layer.y + 'px';
+      layerRoot.style.transform = 'rotate(' + layer.rotation + 'deg) scale(' + layer.scale + ')';
+
+      textRender.textContent = layer.text;
+      textRender.dir = detectDirection(layer.text);
+      textRender.style.fontFamily = layer.fontFamily;
+      textRender.style.fontWeight = layer.fontWeight;
+      textRender.style.fontSize = layer.fontSize + 'px';
+      textRender.style.color = layer.color;
+      textRender.style.textAlign = layer.align;
+    });
+  }
+
+  function renderLayersPanel() {
+    els.layersList.innerHTML = '';
+    if (state.layers.length === 0) {
+      var empty = document.createElement('p');
+      empty.className = 'empty-hint';
+      empty.textContent = 'No layers yet. Add a text layer to get started.';
+      els.layersList.appendChild(empty);
+      return;
+    }
+
+    state.layers.slice().reverse().forEach(function (layer) {
+      var row = document.createElement('div');
+      row.className = 'layer-row' + (layer.id === state.selectedLayerId ? ' active' : '');
+      row.innerHTML =
+        '<button class="layer-visibility" data-action="toggle" title="' + (layer.visible ? 'Hide layer' : 'Show layer') + '">' + (layer.visible ? '◉' : '○') + '</button>' +
+        '<span class="layer-info">' +
+        '<span class="layer-name">' + escapeMarkup(layer.name || 'Text layer') + '</span>' +
+        '<span class="layer-preview">' + escapeMarkup(layer.text.slice(0, 28)) + '</span>' +
+        '</span>' +
+        '<span class="layer-actions">' +
+        '<button data-action="forward" title="Bring forward">↑</button>' +
+        '<button data-action="backward" title="Send backward">↓</button>' +
+        '<button data-action="duplicate" title="Duplicate">⧉</button>' +
+        '<button data-action="delete" title="Delete">🗑</button>' +
+        '</span>';
+      row.addEventListener('click', function (event) {
+        var actionEl = event.target.closest('[data-action]');
+        var action = actionEl ? actionEl.dataset.action : null;
+        if (!action) {
+          selectLayer(layer.id);
+          return;
+        }
+        event.stopPropagation();
+        handleLayerAction(layer.id, action);
+      });
+      els.layersList.appendChild(row);
+    });
+  }
+
+  function handleLayerAction(id, action) {
+    var index = -1;
+    for (var i = 0; i < state.layers.length; i += 1) {
+      if (state.layers[i].id === id) { index = i; break; }
+    }
+    if (index === -1) return;
+
+    if (action === 'toggle') {
+      state.layers[index].visible = !state.layers[index].visible;
+    } else if (action === 'forward' && index < state.layers.length - 1) {
+      var next = state.layers[index + 1];
+      state.layers[index + 1] = state.layers[index];
+      state.layers[index] = next;
+    } else if (action === 'backward' && index > 0) {
+      var prev = state.layers[index - 1];
+      state.layers[index - 1] = state.layers[index];
+      state.layers[index] = prev;
+    } else if (action === 'duplicate') {
+      var source = state.layers[index];
+      var copy = {};
+      for (var key in source) copy[key] = source[key];
+      copy.id = uid();
+      copy.name = source.name + ' copy';
+      copy.x = source.x + 24;
+      copy.y = source.y + 24;
+      state.layers.splice(index + 1, 0, copy);
+      state.selectedLayerId = copy.id;
+    } else if (action === 'delete') {
+      state.layers.splice(index, 1);
+      if (state.selectedLayerId === id) {
+        state.selectedLayerId = state.layers.length ? state.layers[Math.max(0, index - 1)].id : null;
+      }
+    } else {
+      return;
+    }
+
+    commitHistory();
+    render();
+  }
+
+  function renderToolbar() {
+    var layer = getSelectedLayer();
+    els.textToolbar.style.visibility = layer ? 'visible' : 'hidden';
+    if (!layer) return;
+    $('#ffsFontFamily').value = layer.fontFamily;
+    $('#ffsFontWeight').value = String(layer.fontWeight);
+    $('#ffsFontSize').value = layer.fontSize;
+    $('#ffsTextColor').value = layer.color;
+    $$('[data-align]').forEach(function (button) { button.classList.toggle('active', button.dataset.align === layer.align); });
+  }
+
+  function renderStatus() {
+    var layer = getSelectedLayer();
+    var count = state.layers.length + ' layer' + (state.layers.length === 1 ? '' : 's');
+    els.objectStatus.textContent = layer
+      ? count + ' · Selected "' + layer.name + '" · X ' + Math.round(layer.x) + ' · Y ' + Math.round(layer.y) + ' · Rotation ' + Math.round(layer.rotation) + '° · Scale ' + layer.scale.toFixed(2)
+      : count + ' · No layer selected';
+  }
+
+  function render() {
+    els.artboard.style.width = state.frame.width + 'px';
+    els.artboard.style.height = state.frame.height + 'px';
+    els.framePill.textContent = state.frame.name + ' · ' + state.frame.width + ' × ' + state.frame.height;
+
+    renderBackground();
+    renderLayers();
+    renderLayersPanel();
+    renderToolbar();
+    renderStatus();
+    $$('[data-format]').forEach(function (button) { button.classList.toggle('active', button.dataset.format === state.format); });
+
+    renderZoom();
+    renderPreview();
+  }
+
+  function openTextDialog() {
+    var layer = getSelectedLayer();
+    if (!layer) return;
+    els.textInput.value = layer.text;
+    els.textDialog.showModal();
+    setTimeout(function () { els.textInput.focus(); }, 30);
+  }
+
+  function pointerPosition(event) {
+    var rect = els.artboard.getBoundingClientRect();
+    return {
+      x: (event.clientX - rect.left) / state.zoom,
+      y: (event.clientY - rect.top) / state.zoom,
+    };
+  }
+
+  function startInteraction(event, layerId) {
+    var layer = getLayer(layerId);
+    if (!layer) return;
+    if (state.selectedLayerId !== layerId) {
+      state.selectedLayerId = layerId;
+      render();
+    }
+
+    var handle = event.target.dataset.handle;
+    var point = pointerPosition(event);
+    var rootEl = layerElements.get(layerId).root;
+    var rect = rootEl.getBoundingClientRect();
+    var artRect = els.artboard.getBoundingClientRect();
+    var center = {
+      x: ((rect.left + rect.width / 2) - artRect.left) / state.zoom,
+      y: ((rect.top + rect.height / 2) - artRect.top) / state.zoom,
+    };
+    interaction = {
+      layerId: layerId,
+      type: handle || 'drag',
+      start: point,
+      initial: { x: layer.x, y: layer.y, rotation: layer.rotation, scale: layer.scale },
+      center: center,
+      initialDistance: Math.hypot(point.x - center.x, point.y - center.y),
+      initialAngle: Math.atan2(point.y - center.y, point.x - center.x),
+    };
+    event.preventDefault();
+    rootEl.setPointerCapture(event.pointerId);
+  }
+
+  function moveInteraction(event) {
+    if (!interaction) return;
+    var layer = getLayer(interaction.layerId);
+    if (!layer) return;
+    var point = pointerPosition(event);
+    if (interaction.type === 'drag') {
+      layer.x = interaction.initial.x + (point.x - interaction.start.x);
+      layer.y = interaction.initial.y + (point.y - interaction.start.y);
+    } else if (interaction.type === 'rotate') {
+      var angle = Math.atan2(point.y - interaction.center.y, point.x - interaction.center.x);
+      layer.rotation = interaction.initial.rotation + (angle - interaction.initialAngle) * 180 / Math.PI;
+    } else {
+      var distance = Math.hypot(point.x - interaction.center.x, point.y - interaction.center.y);
+      layer.scale = Math.min(4, Math.max(0.25, interaction.initial.scale * (distance / Math.max(1, interaction.initialDistance))));
+    }
+    render();
+  }
+
+  function endInteraction(event) {
+    if (!interaction) return;
+    var layerId = interaction.layerId;
+    interaction = null;
+    var entry = layerElements.get(layerId);
+    if (entry) {
+      try { entry.root.releasePointerCapture(event.pointerId); } catch (err) {}
+    }
+    commitHistory();
+  }
+
+  function downloadSvg() {
+    var svg = buildSvg();
+    var blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+    downloadBlob(blob, 'free-font-story.svg');
+  }
+
+  function downloadBlob(blob, filename) {
+    var url = URL.createObjectURL(blob);
+    var anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = filename;
+    anchor.click();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 500);
+  }
+
+  function downloadRaster(format) {
+    var svg = buildSvg();
+    var svgBlob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+    var url = URL.createObjectURL(svgBlob);
+    var image = new Image();
+    image.onload = function () {
+      var canvas = document.createElement('canvas');
+      canvas.width = state.frame.width;
+      canvas.height = state.frame.height;
+      var context = canvas.getContext('2d');
+      if (!context) return;
+      if (format === 'jpeg' && state.background.type === 'transparent') {
+        context.fillStyle = '#ffffff';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+      }
+      context.drawImage(image, 0, 0);
+      canvas.toBlob(function (blob) {
+        if (blob) downloadBlob(blob, 'free-font-story.' + (format === 'jpeg' ? 'jpg' : 'png'));
+        URL.revokeObjectURL(url);
+      }, format === 'jpeg' ? 'image/jpeg' : 'image/png', 0.94);
+    };
+    image.src = url;
+  }
+
+  function downloadCurrent() {
+    if (state.format === 'svg') return downloadSvg();
+    return downloadRaster(state.format);
+  }
+
+  function switchTab(tab) {
+    $$('#ffsInspectorTabs button').forEach(function (button) { button.classList.toggle('active', button.dataset.tab === tab); });
+    $$('.tab-panel').forEach(function (panel) { panel.hidden = panel.dataset.tabPanel !== tab; });
+  }
+
+  function readBackgroundImageFile(file) {
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      state.background.image = reader.result;
+      state.background.type = 'image';
+      commitHistory();
+      render();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function newDocument() {
+    if (!window.confirm('Start a new document? This clears the current project (including the saved local copy).')) return;
+    var fresh = defaultState();
+    for (var key in state) delete state[key];
+    for (var key2 in fresh) state[key2] = fresh[key2];
+    layerElements.forEach(function (entry) { entry.root.remove(); });
+    layerElements.clear();
+    history.splice(0);
+    historyIndex = -1;
+    fitArtboard();
+    commitHistory();
+    render();
+  }
+
+  // --- Dynamic font list from https://sayid.ir/fonts/ -------------------
+
+  function fetchServerFonts() {
+    return fetch(FONTS_ENDPOINT, { cache: 'no-store' })
+      .then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      })
+      .then(function (data) {
+        if (!Array.isArray(data)) throw new Error('Unexpected response shape');
+        return data
+          .filter(function (item) { return item && item.name && (item.woff2 || item.ttf); })
+          .map(function (item) {
+            return {
+              name: item.name,
+              woff2: item.woff2 ? FONTS_BASE_URL + item.woff2 : null,
+              ttf: item.ttf ? FONTS_BASE_URL + item.ttf : null,
+            };
+          });
+      })
+      .catch(function (err) {
+        console.warn('Free Font Story: could not load ' + FONTS_ENDPOINT + ', using built-in fonts only.', err);
+        return [];
+      });
+  }
+
+  function injectFontFaces(fonts) {
+    var style = document.createElement('style');
+    style.id = 'ffs-font-faces';
+    style.textContent = fonts.map(function (font) {
+      var sources = [];
+      if (font.woff2) sources.push('url("' + font.woff2 + '") format("woff2")');
+      if (font.ttf) sources.push('url("' + font.ttf + '") format("truetype")');
+      if (!sources.length) return '';
+      var safeName = font.name.replace(/["\\]/g, '');
+      return '@font-face{font-family:"' + safeName + '";src:' + sources.join(',') + ';font-display:swap;}';
+    }).join('\n');
+    document.head.appendChild(style);
+  }
+
+  function populateFontSelect(fonts) {
+    var select = els.fontFamily;
+    var previousValue = select.value;
+    select.innerHTML = '';
+
+    var siteGroup = document.createElement('optgroup');
+    siteGroup.label = 'فونت‌های سایت';
+    fonts.forEach(function (font) {
+      var option = document.createElement('option');
+      option.value = font.name;
+      option.textContent = font.name;
+      siteGroup.appendChild(option);
+    });
+    select.appendChild(siteGroup);
+
+    var systemGroup = document.createElement('optgroup');
+    systemGroup.label = 'فونت‌های سیستم';
+    var systemFonts = [
+      { value: 'Vazirmatn', label: 'Vazirmatn' },
+      { value: 'Arial', label: 'Arial' },
+      { value: 'Georgia', label: 'Georgia' },
+      { value: 'Tahoma', label: 'Tahoma' },
+      { value: 'system-ui', label: 'System UI' },
+    ];
+    var siteNames = fonts.map(function (font) { return font.name.toLowerCase(); });
+    systemFonts.forEach(function (item) {
+      if (siteNames.indexOf(item.value.toLowerCase()) !== -1) return;
+      var option = document.createElement('option');
+      option.value = item.value;
+      option.textContent = item.label;
+      systemGroup.appendChild(option);
+    });
+    select.appendChild(systemGroup);
+
+    var values = $$('#ffsFontFamily option').map(function (o) { return o.value; });
+    if (values.indexOf(previousValue) !== -1) {
+      select.value = previousValue;
+    } else if (fonts.length) {
+      select.value = fonts[0].name;
+      var selectedLayer = getSelectedLayer();
+      if (selectedLayer) selectedLayer.fontFamily = fonts[0].name;
+    }
+  }
+
+  function initFonts() {
+    fetchServerFonts().then(function (fonts) {
+      if (!fonts.length) return;
+      injectFontFaces(fonts);
+      populateFontSelect(fonts);
+      render();
+    });
+  }
+
+  // --- Wire up the UI -----------------------------------------------------
+
+  frames.forEach(function (frame) {
+    var button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'frame-option';
+    button.innerHTML = '<strong>' + frame.name + '</strong><span>' + frame.width + ' × ' + frame.height + '</span>';
+    button.addEventListener('click', function () {
+      state.frame = { name: frame.name, width: frame.width, height: frame.height };
+      els.frameDialog.close();
+      fitArtboard();
+      commitHistory();
+      render();
+    });
+    els.frameGrid.appendChild(button);
+  });
+
+  $('#ffsEditTextButton').addEventListener('click', openTextDialog);
+  $('#ffsApplyTextButton').addEventListener('click', function () {
+    withSelectedLayer(function (layer) { layer.text = els.textInput.value.trim() || 'Type something'; });
+  });
+
+  $('#ffsFontFamily').addEventListener('change', function (event) { withSelectedLayer(function (layer) { layer.fontFamily = event.target.value; }); });
+  $('#ffsFontWeight').addEventListener('change', function (event) { withSelectedLayer(function (layer) { layer.fontWeight = Number(event.target.value); }); });
+  $('#ffsFontSize').addEventListener('change', function (event) { withSelectedLayer(function (layer) { layer.fontSize = Math.min(300, Math.max(12, Number(event.target.value) || 96)); }); });
+  $('#ffsTextColor').addEventListener('input', function (event) { withSelectedLayer(function (layer) { layer.color = event.target.value; }, { commit: false }); });
+  $('#ffsTextColor').addEventListener('change', function () { if (getSelectedLayer()) commitHistory(); });
+  $$('[data-align]').forEach(function (button) { button.addEventListener('click', function () { withSelectedLayer(function (layer) { layer.align = button.dataset.align; }); }); });
+  $$('[data-format]').forEach(function (button) { button.addEventListener('click', function () { state.format = button.dataset.format; render(); }); });
+
+  $('#ffsAddLayerButton').addEventListener('click', function () {
+    var offset = state.layers.length * 20;
+    var layer = createTextLayer({ name: 'Text ' + (state.layers.length + 1), x: 40 + offset, y: 40 + offset });
+    state.layers.push(layer);
+    state.selectedLayerId = layer.id;
+    commitHistory();
+    render();
+  });
+
+  $$('#ffsBgTypeSwitch [data-bg]').forEach(function (button) {
+    button.addEventListener('click', function () {
+      state.background.type = button.dataset.bg;
+      commitHistory();
+      render();
+    });
+  });
+  els.backgroundColor.addEventListener('input', function (event) { state.background.color = event.target.value; render(); });
+  els.backgroundColor.addEventListener('change', function () { commitHistory(); });
+  els.bgImageInput.addEventListener('change', function (event) { readBackgroundImageFile(event.target.files && event.target.files[0]); });
+  els.removeBgImageButton.addEventListener('click', function () {
+    state.background.image = null;
+    if (state.background.type === 'image') state.background.type = 'transparent';
+    els.bgImageInput.value = '';
+    commitHistory();
+    render();
+  });
+  els.bgFit.addEventListener('change', function (event) { state.background.fit = event.target.value; commitHistory(); render(); });
+
+  $('#ffsFrameButton').addEventListener('click', function () { els.frameDialog.showModal(); });
+  $$('#ffsInspectorTabs button').forEach(function (button) { button.addEventListener('click', function () { switchTab(button.dataset.tab); }); });
+  $$('.rail-button[data-tool]').forEach(function (button) {
+    button.addEventListener('click', function () {
+      $$('.rail-button[data-tool]').forEach(function (b) { b.classList.toggle('active', b === button); });
+      var tool = button.dataset.tool;
+      if (tool === 'frame') { els.frameDialog.showModal(); return; }
+      if (tool === 'layers') switchTab('layers');
+      if (tool === 'background') switchTab('background');
+      if ((tool === 'layers' || tool === 'background') && window.matchMedia('(max-width: 1100px)').matches) {
+        els.inspector.classList.add('open');
+      }
+    });
+  });
+
+  $('#ffsExportButton').addEventListener('click', function () {
+    if (window.matchMedia('(max-width: 1100px)').matches) els.inspector.classList.toggle('open');
+    else downloadCurrent();
+  });
+  $('#ffsDownloadButton').addEventListener('click', downloadCurrent);
+  $('#ffsZoomIn').addEventListener('click', function () { state.zoom = Math.min(2, state.zoom + .1); renderZoom(); });
+  $('#ffsZoomOut').addEventListener('click', function () { state.zoom = Math.max(.15, state.zoom - .1); renderZoom(); });
+  $('#ffsFitButton').addEventListener('click', fitArtboard);
+  $('#ffsUndoButton').addEventListener('click', function () { restoreHistory(historyIndex - 1); });
+  $('#ffsRedoButton').addEventListener('click', function () { restoreHistory(historyIndex + 1); });
+  $('#ffsResetButton').addEventListener('click', newDocument);
+
+  window.addEventListener('resize', function () { if (history.length <= 1) fitArtboard(); });
+  window.addEventListener('keydown', function (event) {
+    var modifier = event.metaKey || event.ctrlKey;
+    if (modifier && event.key.toLowerCase() === 'z') {
+      event.preventDefault();
+      restoreHistory(historyIndex + (event.shiftKey ? 1 : -1));
+      return;
+    }
+    var activeEntry = layerElements.get(state.selectedLayerId);
+    var activeLayerRoot = activeEntry ? activeEntry.root : null;
+    if (event.key === 'Enter' && document.activeElement === activeLayerRoot) openTextDialog();
+    if ((event.key === 'Delete' || event.key === 'Backspace') && document.activeElement === activeLayerRoot && state.selectedLayerId) {
+      event.preventDefault();
+      handleLayerAction(state.selectedLayerId, 'delete');
+    }
+  });
+
+  commitHistory();
+  initFonts();
+  requestAnimationFrame(function () { fitArtboard(); render(); });
+})();
+</script>
